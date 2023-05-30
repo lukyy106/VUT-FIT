@@ -13,6 +13,6 @@ Obtained points 6.7/7
   * Semantic check
   * Interprets code
 * test.php
-  * Tests parse and interpret witch included test and visualizes it
+  * Tests parse and interpret with included test and visualizes it
 
 Obtained points 10.3/13
