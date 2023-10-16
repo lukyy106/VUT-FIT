@@ -1,0 +1,218 @@
+#!/bin/bash
+# chyba programu - subor nesme obsahovat viac ako jednu mezeru zasebou ani zacinat medzerou ak neobsahuju meczeru niekde potom je predpoklad ze tieto nazvy nie su bezne a preto to nepovazujem za potrebne
+
+
+
+#POSIXLY_CORRECT=yes
+FILE_ERE=/
+DIR=$PWD
+NORMAL=NO
+NF=0
+ND=0
+for i in $(seq 0 8)
+do
+	FILE_SIZE[$i]=0
+done
+
+
+
+UNIT[0]=100
+UNIT[1]=1024
+UNIT[2]=10240
+UNIT[3]=102400
+UNIT[4]=1048576
+UNIT[5]=10485760
+UNIT[6]=104857600
+UNIT[7]=1073741824
+export FILE_SIZE
+export UNIT
+
+COLS=$(($(tput cols) - 12))
+
+printer(){
+	param=$1
+	if [ $NORMAL = yes ]
+	then
+		if [ $param -gt $COLS ]
+		then
+			param=$COLS
+		fi
+	fi
+
+	for i in $(seq 1 $param)
+	do 
+		echo -n "#"
+	done
+	echo
+}
+
+
+
+
+size(){
+	for j in $(seq 0 7)
+	 do
+		 if [ $( stat -c%s "$1" ) -lt ${UNIT[$j]} ]
+		 then
+	 		((FILE_SIZE[$j]++))
+		 	break
+		 fi
+	done
+	if [ $( stat -c%s "$1" ) -ge ${UNIT[7]} ]
+	then
+		((FILE_SIZE[8]++))
+	fi
+}
+
+
+file_size(){
+	cd $DIR
+	FILES=($(find -type f))
+
+	for i in $(seq 1 ${#FILES[@]})
+	do
+		 if [ ! -f ${FILES[$i-1]} ]
+		 then
+		 	FILE_SPACE="${FILE_SPACE}${FILES[$i-1]}"
+		 	#echo $FILE_SPACE
+		 	if [ -f "${FILE_SPACE}" ]
+		 	then
+		 		size "${FILE_SPACE}"
+		 		unset FILE_SPACE
+		 	else
+		 		FILE_SPACE="$FILE_SPACE "
+		 		if [ -f "${FILE_SPACE}" ]
+		 		then
+		 			size "${FILE_SPACE}"
+		 			unset FILE_SPACE
+		 		fi
+		 	fi
+		 else
+			size ${FILES[$i-1]}
+		fi
+	done 
+}
+
+
+
+for i in $(seq 1 $#)
+do
+	if [ "$skip_once" = "yes" ]
+	then
+		skip_once=no
+	elif [ "$1" = "-i" ]
+	then
+		FILE_ERE=$2
+		shift
+		shift
+		skip_once=yes
+	elif [ "$1" = "-n" ] 
+	then
+		NORMAL=yes
+		shift
+	else
+		if [ -d "$1" ]
+		then
+			DIR=$1
+			shift
+		else 
+			exit 1
+		fi
+	fi
+done
+
+
+
+
+
+cd $DIR
+FILES=($(find -type f))
+for i in $(seq 1 ${#FILES[@]})
+do
+	if [ ! -f ${FILES[$i-1]} ]
+	then
+	 	FILE_SPACE="${FILE_SPACE}${FILES[$i-1]}"
+	 	if [ -f "${FILE_SPACE}" ]
+	 	then
+	 		size "${FILE_SPACE}"
+	 		unset FILE_SPACE
+	 	else
+	 		FILE_SPACE="$FILE_SPACE "
+	 		if [ -f "${FILE_SPACE}" ]
+	 		then
+	 			size "${FILE_SPACE}"
+	 			unset FILE_SPACE
+	 		fi
+	 	fi
+	 else
+		size ${FILES[$i-1]}
+	fi
+done 
+
+DIRECTORIES=($(find -type d))
+
+
+
+
+for i in $(seq 1 ${#DIRECTORIES[@]})
+do
+	if [ ! -d ${#DIRECTORIES[i-1]} ]
+	then
+	 	DIR_SPACE="${DIR_SPACE}${DIRECTORIES[i-1]}"
+	 	#echo $FILE_SPACE
+	 	if [ -d "${DIR_SPACE}" ]
+	 	then
+	 		((ND++))
+	 		unset DIR_SPACE
+	 	else
+	 		DIR_SPACE="$DIR_SPACE "
+	 		if [ -d "${DIR_SPACE}" ]
+	 		then
+	 			((ND++))
+	 			unset DIR_SPACE
+	 		fi
+	 	fi
+	 else
+		((ND++))
+	fi
+done
+
+((ND--))
+
+
+
+NF=$((${FILE_SIZE[0]} + ${FILE_SIZE[1]} + ${FILE_SIZE[2]} + ${FILE_SIZE[3]} + ${FILE_SIZE[4]} + ${FILE_SIZE[5]} + ${FILE_SIZE[6]} + ${FILE_SIZE[7]} + ${FILE_SIZE[8]}))
+
+echo Root directory: $DIR
+echo Directories: $ND
+echo All files: $NF
+echo File size histogram: 
+
+echo -n "  <100 B  : "
+printer ${FILE_SIZE[0]}
+
+echo -n "  <1 KiB  : "
+printer ${FILE_SIZE[1]}
+
+echo -n "  <10 KiB : "
+printer ${FILE_SIZE[2]}
+
+echo -n "  <100 KiB: "
+printer ${FILE_SIZE[3]}
+
+echo -n "  <1 MiB  : "
+printer ${FILE_SIZE[4]}
+
+echo -n "  <10 MiB : "
+printer ${FILE_SIZE[5]}
+
+echo -n "  <100 MiB: "
+printer ${FILE_SIZE[6]}
+
+echo -n "  <1 GiB  : "
+printer ${FILE_SIZE[7]}
+
+echo -n "  >=1 GiB : "
+printer ${FILE_SIZE[8]}
+
+#exit 0
