@@ -1,0 +1,77 @@
+\documentclass{article}
+\usepackage[utf8]{inputenc}
+\usepackage[slovak]{babel}
+\usepackage{graphicx}
+%\usepackage{amsmath}
+%\usepackage[export]{adjustbox}
+\usepackage{indentfirst}
+
+
+
+\begin{document}
+
+\begin{titlepage}
+    \begin{center}
+        \vspace*{1cm}
+        
+        \includegraphics[width = 8cm]{images/fit.png}
+        
+        \vspace{2cm}
+        
+        \LARGE
+        \textbf{Mikroprocesorové a vstavané systémy}
+        
+        
+        \large
+        
+        
+        \vspace{0.5cm}
+        
+        \large
+        \textbf{Hodiny s budíkom na bázi modulu Real Time Clock}
+        
+        \vspace{0.5cm}
+        \today
+        
+        \vspace{8cm}
+        
+    \end{center}
+    Neupauer Lukáš      \makebox[3.1cm]{xneupa01}       \hfill
+    
+\end{titlepage}
+
+\newpage
+
+\tableofcontents
+\newpage
+
+\section{Úvod}
+
+Cieľom tejto práce je návrh zariadenia, ktoré bude disponovať následnou funkcionalitou s využitím Real Time Clock (RTC) modulu na platforme FitKit3.
+\begin{itemize}
+    \item nastavenie času pre hodiny a budík
+    \item zapnutie a vypnutie funkcie budenia
+    \item zvukovú a svetelnú signalizáciu budenia a výber z aspoň troch možností z obydvoch kategórií
+    \item opakovanie pokusu budenia z nastavitelným počtom odložení a intervalu
+\end{itemize}
+
+\section{Práca so zariadením}
+Pre prácu so zariadením je potrebné najprv program preložiť, nahrať do FitKitu a nastaviť sériovú komunikáciu.
+
+\subsection{Prvotné spustenie}
+Na žačitku je potrebné nahrať náš program do FitKitu. Pre túto operáciu je možné využiť napríklad program Kinetis Design Studio pre jeho kompiláciu a nahranie do zariadenia. Na zahájenie sériovej komunikáci je možné využiť napríklad program Putty. Po vykonaní túchto krokov je zariadenie nastavené a pri dalšom spustení už nie je nutné program nahrávať do zariadenia, ale iba spustiť sériuvú komunikáciu. Po úspešnom nahraní prgramu do zariadenia sa zobrazí výzva na zadanie dátumu a času vo formáte YYYY-MM-DD HH:MM:SS. Vzorovým príkladom tohto vstupu je napríklad 2022-12-14 11:32:42. Zariadenie je teraz v prevádzke a ukazuje čas.
+
+\subsection{Práca so zariadením}
+Na našom zariadením sú 4 tlačidlá s rôznom funkcionalitou označené od čísli. Pri správne spustenom zariadení sa tlačidlom 2 nastavuje nový dátum a čas, podobne ako pri je spúšťaní. Tlačidlom 3 sa nastavuje budík. Pri nastavovaní budíka je potrebné zadať dátum a čas budenia rovanku ako pri tlačidle 2. Následne sa nastavuje maximálny počet odložení. Ich počet je obmezdený na hodnotu 9. Po dosiahnutí maximalnej hodnoty sa budík sám vypne. Taktiež je potrebné zadať interval v sekundách mezdi odloženiami a to od 60 do 1000. Náslene sa vyberá z troch možných zvukových a svetelných signalizácií číslami 1 až 3. Budík sa taktiež po 30 sekundách neaktivity sám odloží, ak neprekonal ich maximálny počet. Pri správne nastavenom budíku sa rozsvieti ledka číslo 9, ktorá indikuje, že je budík nastavený. Pre jeho vypnutie je potrebné stlačiť tlačidlo 4. Pri budení sa budík odkláda tlačidlom 6 a vypína tlačidlom 4.
+
+\section{Implementácia}
+Všetok zdrojový kód implementácie sa nachádza v súbore main.c. Ostatné súbory sú vygenerované programom Kinetis Design studio. 
+
+Na začtiatku sú volané funkcie MCUInit, PortsInit, UART5Init a RTCInit, ktoré iniciujú počiatočný stav zariadenia. Následne po zadaní dátumu a času je volaná funkcia set\_new\_time, ktorá uloží  dané hodnoty do prvého parametru, zavolá funkciu parse\_time a nastavý daný čas na module RTC. Funkcia parse\_time spracuje náš vstup, skontroluje či je platný, a ak áno, tak ho vráti v štruktúre tm. 
+
+Ďalej sa nacházda nekonečná smyčka. Na začiatku tejto smyčky sa kontroluje či už ubehla sekunda od posleného výpisu času a ak áno tak vypíše aktuálny čas. Náslene sa kontroluje, či nie je stlačené niektoré tlačidlo. 
+
+Čas budenia sa ukladá do štruktúry tm menom a. Všetky ostatné nastavenia budíka sú v globálnych premenných pod inicializáciou štruktúty a. Zvukovú signalizáciu zaobstaráva funkcia music a svetelnú lights na základe premenných sound a light.
+
+
+\end{document}
