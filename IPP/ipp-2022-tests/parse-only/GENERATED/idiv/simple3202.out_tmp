@@ -1,8 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<program language="IPPcode22">
-
-Warning: Undefined array key 1 in /Users/lukasneupauer/Documents/Github/VUT-FIT/IPP/parse.php on line 92
-
-Warning: Undefined array key 1 in /Users/lukasneupauer/Documents/Github/VUT-FIT/IPP/parse.php on line 95
-
-Deprecated: preg_match(): Passing null to parameter #2 ($subject) of type string is deprecated in /Users/lukasneupauer/Documents/Github/VUT-FIT/IPP/parse.php on line 95
